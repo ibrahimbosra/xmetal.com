@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>حساب العامل</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/worker-account.css">
+</head>
+<body>
+    <main class="worker-app">
+        <header class="worker-topbar">
+            <div>
+                <span class="eyebrow">X METAL</span>
+                <h1>حساب العامل</h1>
+            </div>
+            <div class="topbar-actions">
+                <button id="openHistoryButton" class="topbar-button" type="button"><i class="fa-solid fa-clock-rotate-left"></i> السجل</button>
+                <button id="openSettingsButton" class="topbar-button" type="button"><i class="fa-solid fa-gear"></i> إعدادات</button>
+            </div>
+        </header>
+
+        <section class="summary-grid" id="summaryGrid" aria-live="polite"></section>
+
+        <section class="action-bar" aria-label="عمليات العامل">
+            <button class="action-button primary" type="button" data-open-modal="advanceModal">+ سلفة</button>
+            <button class="action-button accent" type="button" data-open-modal="pieceModal">+ قطعة</button>
+            <button class="action-button payment" type="button" data-open-modal="paymentModal">دفع أجر</button>
+            <button class="action-button close-period" type="button" id="closePeriodButton">إغلاق الفترة</button>
+        </section>
+
+        <section class="today-status card" id="todayStatusCard">
+            <div class="panel-head compact">
+                <span id="todayStatusLabel" class="today-status-label">لم يسجل</span>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="modal-backdrop" id="settingsModal" hidden>
+        <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+            <div class="modal-head">
+                <h3 id="settingsTitle">إعدادات العامل</h3>
+                <button class="modal-close" type="button" data-close-modal="settingsModal">×</button>
+            </div>
+            <form id="settingsForm" class="settings-form modal-form">
+                <label for="workerNameInput">اسم العامل</label>
+                <input id="workerNameInput" type="text" placeholder="اسم العامل" required>
+
+                <label for="payTypeInput">نوع الأجر</label>
+                <select id="payTypeInput">
+                    <option value="daily">أجر يومي</option>
+                    <option value="weekly">أجر أسبوعي</option>
+                    <option value="monthly">أجر شهري</option>
+                </select>
+
+                <label for="weekStartDayInput">بداية الأسبوع</label>
+                <select id="weekStartDayInput">
+                    <option value="saturday">السبت</option>
+                    <option value="sunday">الأحد</option>
+                    <option value="monday">الاثنين</option>
+                    <option value="tuesday">الثلاثاء</option>
+                    <option value="wednesday">الأربعاء</option>
+                    <option value="thursday">الخميس</option>
+                    <option value="friday">الجمعة</option>
+                </select>
+
+                <label for="currencyNameInput">اسم العملة</label>
+                <input id="currencyNameInput" type="text" placeholder="مثل: دولار" required>
+
+                <label for="currencySymbolInput">رمز العملة</label>
+                <input id="currencySymbolInput" type="text" placeholder="مثل: $" maxlength="4" required>
+
+                <label for="payValueInput">قيمة الأجر</label>
+                <input id="payValueInput" type="number" min="0" step="0.01" placeholder="0.00">
+
+                <label for="startDateInput">تاريخ بدء العمل</label>
+                <input id="startDateInput" type="date">
+
+                <button class="primary-button large" type="submit">حفظ الإعدادات</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="dayStatusModal" hidden>
+        <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="dayStatusTitle">
+            <div class="modal-head">
+                <h3 id="dayStatusTitle">تغيير حالة اليوم</h3>
+                <button class="modal-close" type="button" data-close-modal="dayStatusModal">×</button>
+            </div>
+            <p id="dayStatusDateLabel" class="modal-date"></p>
+            <div class="modal-actions two-row">
+                <button type="button" class="choice-button work" data-day-status="work">دوام</button>
+                <button type="button" class="choice-button off" data-day-status="off">عطلة</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="historyModal" hidden>
+        <div class="modal-sheet history-modal" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+            <div class="modal-head">
+                <h3 id="historyTitle">سجل الحركات</h3>
+                <button class="modal-close" type="button" data-close-modal="historyModal">×</button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+            <button id="loadMoreHistoryButton" class="primary-button large" type="button">عرض المزيد</button>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="recordEditModal" hidden>
+        <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="recordEditTitle">
+            <div class="modal-head">
+                <h3 id="recordEditTitle">تعديل السجل</h3>
+                <button class="modal-close" type="button" data-close-modal="recordEditModal">×</button>
+            </div>
+            <div id="recordEditorList" class="record-editor-list"></div>
+            <form id="recordEditForm" class="modal-form">
+                <input id="recordEditRecordId" type="hidden">
+                <label for="recordEditType">نوع السجل</label>
+                <select id="recordEditType">
+                    <option value="advance">سلفة</option>
+                    <option value="piece">قطعة</option>
+                    <option value="payment">دفع</option>
+                </select>
+
+                <div id="recordEditPieceFields" hidden>
+                    <label for="recordEditItemName">اسم القطعة</label>
+                    <input id="recordEditItemName" type="text">
+                    <label for="recordEditPrice">سعر القطعة</label>
+                    <input id="recordEditPrice" type="number" min="0" step="0.01">
+                    <label for="recordEditQuantity">الكمية</label>
+                    <input id="recordEditQuantity" type="number" min="1" step="1">
+                </div>
+
+                <div id="recordEditAmountWrapper">
+                    <label for="recordEditAmount">المبلغ</label>
+                    <input id="recordEditAmount" type="number" min="0" step="0.01" required>
+                </div>
+
+                <label for="recordEditDate">التاريخ</label>
+                <input id="recordEditDate" type="date" required>
+                <label for="recordEditNote">ملاحظة</label>
+                <textarea id="recordEditNote" rows="2" maxlength="180"></textarea>
+                <button class="primary-button large" type="submit">حفظ التعديل</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="advanceModal" hidden>
+        <div class="modal-sheet" role="dialog" aria-modal="true">
+            <div class="modal-head">
+                <h3>إضافة سلفة</h3>
+                <button class="modal-close" type="button" data-close-modal="advanceModal">×</button>
+            </div>
+            <form id="advanceForm" class="modal-form">
+                <label for="advanceAmount">المبلغ</label>
+                <input id="advanceAmount" type="number" min="0" step="0.01" required>
+                <label for="advanceDate">التاريخ</label>
+                <input id="advanceDate" type="date" required>
+                <label for="advanceNote">ملاحظة اختيارية</label>
+                <textarea id="advanceNote" rows="2" maxlength="180"></textarea>
+                <button class="primary-button large" type="submit">حفظ السلفة</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="pieceModal" hidden>
+        <div class="modal-sheet" role="dialog" aria-modal="true">
+            <div class="modal-head">
+                <h3>إضافة قطعة</h3>
+                <button class="modal-close" type="button" data-close-modal="pieceModal">×</button>
+            </div>
+            <form id="pieceForm" class="modal-form">
+                <label for="pieceName">اسم القطعة</label>
+                <input id="pieceName" type="text" required>
+                <label for="piecePrice">السعر</label>
+                <input id="piecePrice" type="number" min="0" step="0.01" required>
+                <label for="pieceQuantity">الكمية</label>
+                <input id="pieceQuantity" type="number" min="1" step="1" required>
+                <label for="pieceDate">التاريخ</label>
+                <input id="pieceDate" type="date" required>
+                <label for="pieceNote">ملاحظة اختيارية</label>
+                <textarea id="pieceNote" rows="2" maxlength="180"></textarea>
+                <button class="primary-button large" type="submit">حفظ القطعة</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="paymentModal" hidden>
+        <div class="modal-sheet" role="dialog" aria-modal="true">
+            <div class="modal-head">
+                <h3>دفع أجر</h3>
+                <button class="modal-close" type="button" data-close-modal="paymentModal">×</button>
+            </div>
+            <form id="paymentForm" class="modal-form">
+                <label for="paymentAmount">المبلغ المدفوع</label>
+                <input id="paymentAmount" type="number" min="0" step="0.01" required>
+                <label for="paymentDate">التاريخ</label>
+                <input id="paymentDate" type="date" required>
+                <label for="paymentNote">ملاحظة اختيارية</label>
+                <textarea id="paymentNote" rows="2" maxlength="180"></textarea>
+                <button class="primary-button large" type="submit">تسجيل الدفع</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="./js/worker-account.js"></script>
+</body>
+</html>

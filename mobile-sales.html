@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="نقطة البيع">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <title>X METAL - نقطة البيع</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/mobile-sales.css">
+</head>
+<body>
+  <div class="splash-screen" id="splashScreen" aria-label="جاري تشغيل نقطة البيع">
+    <div class="splash-mark">XM</div>
+    <strong>نقطة البيع</strong>
+    <span>جاري التجهيز...</span>
+  </div>
+  <div class="login-screen" id="loginScreen" hidden>
+    <div class="login-card">
+      <div class="brand-mark">XM</div>
+      <h1>نقطة البيع</h1>
+      <p>سجّل الدخول للبدء</p>
+      <form id="loginForm" autocomplete="on">
+        <label for="email">البريد الإلكتروني</label>
+        <input id="email" type="email" autocomplete="username" required>
+        <label for="password">كلمة المرور</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <button class="primary-button" type="submit">دخول</button>
+        <p class="form-error" id="loginError" role="alert"></p>
+      </form>
+    </div>
+  </div>
+
+  <section class="toolbar global-product-toolbar" id="globalProductToolbar" aria-label="البحث في المنتجات" hidden>
+      <button class="toolbar-action" id="toolbarCashboxButton" type="button" data-mobile-route="cashbox" aria-label="الخزينة" title="الخزينة"><i class="fas fa-wallet" aria-hidden="true"></i></button>
+      <label class="search-box">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="productSearch" type="search" placeholder="ابحث عن منتج" autocomplete="off">
+        <span class="product-count" id="productCount">جاري تحميل المنتجات...</span>
+      </label>
+      <button class="toolbar-action" id="toolbarSalesHistoryButton" type="button" data-mobile-route="history" aria-label="سجل المبيعات" title="سجل المبيعات"><i class="fas fa-receipt" aria-hidden="true"></i></button>
+    </section>
+
+  <main class="app-shell" id="appShell" hidden>
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">X METAL</span>
+      </div>
+    </header>
+
+    <div class="product-tabs" id="productTabs" hidden>
+      <button type="button" class="product-tab is-active" data-product-tab="all">كل المنتجات</button>
+      <button type="button" class="product-tab" data-product-tab="available">المتوفر</button>
+      <button type="button" class="product-tab" data-product-tab="ended">المنتهية</button>
+    </div>
+
+    <section class="products-grid" id="productsGrid" aria-live="polite"></section>
+    <div class="empty-state" id="productsEmpty" hidden>لا توجد منتجات متاحة</div>
+  </main>
+
+  <section class="debt-page" id="debtPage" hidden>
+    <header class="debt-page-header">
+      <h2>الديون</h2>
+    </header>
+    <div class="debt-page-body">
+      <div class="debt-page-controls" aria-label="أدوات العملاء">
+        <label class="debt-customer-search">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="debtCustomerSearch" type="search" placeholder="ابحث عن عميل" autocomplete="off">
+        </label>
+        <div class="debt-total-due" id="debtTotalDue" aria-live="polite"><span>إجمالي الديون</span><strong>0</strong></div>
+        <button type="button" class="add-customer-button" id="addDebtCustomerButton" aria-label="إضافة عميل جديد">＋</button>
+      </div>
+      <div class="debt-list" id="debtPageList" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="employee-page" id="employeePage" hidden>
+    <section class="employee-account" aria-labelledby="employeeDetailTitle">
+      <div class="employee-account-heading">
+        <p class="eyebrow">حساب وسجل الموظف</p>
+        <h2 id="employeeDetailTitle">بيانات الموظف</h2>
+      </div>
+      <div id="employeeDetailSummary" class="employee-summary"></div>
+      <div class="employee-detail-actions">
+        <button type="button" class="employee-action-withdraw" id="withdrawEmployeeButton">سحب مال</button>
+        <button type="button" class="employee-action-goods" id="withdrawEmployeeGoodsButton">سحب منتج</button>
+        <button type="button" class="employee-action-attendance" id="toggleEmployeeDayButton" hidden>تعديل حالة اليوم</button>
+      </div>
+      <div id="employeeHistory" class="employee-history" aria-live="polite"></div>
+    </section>
+  </section>
+
+  <section class="mobile-page cashbox-page" id="cashboxPage" hidden>
+    <header class="mobile-page-header"><h2>الخزينة</h2></header>
+    <section class="cashbox-summary" aria-live="polite">
+      <p class="eyebrow">الخزينة الحالية</p>
+      <strong id="cashboxCurrentBalance">0</strong>
+      <div class="cashbox-stats" id="cashboxStats"></div>
+      <div class="cashbox-last-withdrawal" id="cashboxLastWithdrawal"></div>
+    </section>
+    <div class="cashbox-history" id="cashboxHistory" aria-live="polite"></div>
+  </section>
+
+  <section class="mobile-page operations-page" id="operationsPage" hidden>
+    <header class="mobile-page-header"><h2>سجل العمليات</h2></header>
+    <div class="operations-controls">
+      <input id="operationsSearch" type="search" placeholder="بحث في السجل" autocomplete="off">
+      <select id="operationsActionFilter" aria-label="تصفية حسب الإجراء">
+        <option value="">كل الإجراءات</option><option value="sell">بيع</option><option value="update">تعديل</option><option value="cancel">إلغاء</option><option value="return">استرجاع</option><option value="payment">سداد</option><option value="debt">دين</option><option value="treasury">خزينة</option><option value="employee">موظف</option><option value="inventory">مخزون</option>
+      </select>
+    </div>
+    <div class="operations-table-wrap">
+      <table class="operations-table"><thead><tr><th>#</th><th>التاريخ</th><th>الإجراء</th><th>الكيان</th><th>التفاصيل</th><th>المستخدم</th><th>عرض</th></tr></thead><tbody id="operationsLogBody"></tbody></table>
+    </div>
+    <p class="operations-status" id="operationsStatus" aria-live="polite"></p>
+    <button class="load-more operations-load-more" id="operationsLoadMore" type="button" hidden>عرض المزيد</button>
+  </section>
+
+  <nav class="bottom-navigation" id="bottomNavigation" aria-label="التنقل الرئيسي" hidden>
+    <button type="button" data-mobile-route="employee" aria-label="الموظف" title="الموظف"><i class="fas fa-user-tie" aria-hidden="true"></i></button>
+    <button type="button" data-mobile-route="debts" aria-label="الديون" title="الديون"><i class="fas fa-hand-holding-dollar" aria-hidden="true"></i></button>
+    <button type="button" class="is-home" data-mobile-route="home" aria-label="الرئيسية" title="الرئيسية"><i class="fas fa-house" aria-hidden="true"></i></button>
+    <button type="button" data-mobile-route="operations" aria-label="سجل العمليات" title="سجل العمليات"><i class="fas fa-list-check" aria-hidden="true"></i></button>
+    <button type="button" data-mobile-route="settings" aria-label="الإعدادات" title="الإعدادات"><i class="fas fa-gear" aria-hidden="true"></i></button>
+  </nav>
+
+  <div class="mobile-menu-backdrop" id="mobileMenuBackdrop" hidden></div>
+  <section class="mobile-menu-panel" id="mobileMenuPanel" hidden aria-label="خيارات إضافية">
+    <button type="button" data-mobile-route="history"><i class="fas fa-receipt" aria-hidden="true"></i><span>سجل المبيعات</span></button>
+    <button type="button" data-mobile-route="cashbox"><i class="fas fa-cash-register" aria-hidden="true"></i><span>الخزينة</span></button>
+    <button type="button" data-mobile-route="operations"><i class="fas fa-list-check" aria-hidden="true"></i><span>سجل العمليات</span></button>
+    <button type="button" data-mobile-route="settings"><i class="fas fa-gear" aria-hidden="true"></i><span>الإعدادات</span></button>
+  </section>
+
+  <div class="modal-backdrop" id="operationDetailModal" hidden>
+    <section class="modal operation-detail-modal" role="dialog" aria-modal="true" aria-labelledby="operationDetailTitle">
+      <button class="close-button" data-close-modal="operationDetailModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">سجل العمليات</p>
+      <h2 id="operationDetailTitle">تفاصيل العملية</h2>
+      <div id="operationDetailContent" class="operation-detail-content"></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="employeeWithdrawalModal" hidden>
+    <section class="modal employee-action-modal" role="dialog" aria-modal="true" aria-labelledby="withdrawalTitle">
+      <button class="close-button" data-close-modal="employeeWithdrawalModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">مستحقات الموظف</p>
+      <h2 id="withdrawalTitle">سحب مال</h2>
+      <form id="employeeWithdrawalForm" class="debt-form" novalidate>
+        <label for="withdrawalAmount">المبلغ <span id="withdrawalCurrencyLabel"></span></label><input id="withdrawalAmount" type="number" min="0.01" step="0.01" required>
+        <label for="withdrawalDate">التاريخ</label><input id="withdrawalDate" type="date" required>
+        <label for="withdrawalNote">ملاحظة اختيارية</label><textarea id="withdrawalNote" rows="2" maxlength="200"></textarea>
+        <button class="primary-button" id="confirmEmployeeWithdrawal" type="submit">تأكيد السحب</button>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="employeePurchaseModal" hidden>
+    <section class="modal employee-action-modal" role="dialog" aria-modal="true" aria-labelledby="employeePurchaseTitle">
+      <button class="close-button" data-close-modal="employeePurchaseModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">خصم من مستحقات الموظف</p>
+      <h2 id="employeePurchaseTitle">سحب منتج</h2>
+      <input id="employeeProductSearch" type="search" placeholder="ابحث عن منتج" autocomplete="off">
+      <div id="employeeProductList" class="employee-product-list" aria-live="polite"></div>
+      <div id="employeeSelectedProduct" class="employee-selected-product" hidden>
+        <strong id="employeeSelectedProductName"></strong><span id="employeeSelectedProductStock"></span>
+        <label for="employeePurchaseQuantity">الكمية</label><input id="employeePurchaseQuantity" type="number" min="0.01" step="0.01">
+        <label for="employeePurchasePrice">السعر المحسوب على الموظف</label><input id="employeePurchasePrice" type="number" min="0" step="0.01">
+        <label for="employeePurchaseNote">ملاحظة</label><textarea id="employeePurchaseNote" rows="2" maxlength="200"></textarea>
+        <p id="employeePurchasePriceWarning" class="form-error" role="alert"></p>
+        <button type="button" class="primary-button" id="confirmEmployeePurchase">تأكيد سحب المنتج</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="saleModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="saleModalTitle">
+      <button class="close-button" data-close-modal="saleModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">تسجيل بيع</p>
+      <h2 id="saleModalTitle">بيع منتج</h2>
+      <p class="modal-product" id="saleProductName"></p>
+      <form id="saleForm">
+        <input id="salePaymentMethod" type="hidden" value="cash">
+        <input id="saleSelectedCustomerId" type="hidden" value="">
+        <div class="quantity-label-row"><label for="saleQuantity">الكمية</label><span class="available-stock" id="availableStock" aria-live="polite"></span></div>
+        <input id="saleQuantity" type="number" min="0.01" step="0.01" required>
+        <p class="quantity-warning" id="quantityWarning" role="alert" hidden></p>
+        <div class="quick-quantity-row" id="quickQuantityButtons" aria-label="كميات سريعة">
+          <button type="button" data-quick-quantity="0.25">0.25</button><button type="button" data-quick-quantity="0.5">0.5</button><button type="button" data-quick-quantity="1">1</button><button type="button" data-quick-quantity="2">2</button><button type="button" data-quick-quantity="3">3</button><button type="button" data-quick-quantity="4">4</button><button type="button" data-quick-quantity="5">5</button><button type="button" data-quick-quantity="6">6</button><button type="button" data-quick-quantity="7">7</button><button type="button" data-quick-quantity="8">8</button><button type="button" data-quick-quantity="9">9</button><button type="button" data-quick-quantity="10">10</button>
+        </div>
+        <div class="price-fields-row">
+          <div class="price-field"><label for="salePrice">إجمالي سعر البيع <span id="saleModeLabel"></span></label><input id="salePrice" type="number" min="0" step="any" required></div>
+          <div class="price-field"><label for="saleUnitPrice">سعر القطعة الواحدة</label><input id="saleUnitPrice" type="text" readonly aria-readonly="true"></div>
+        </div>
+        <p class="input-hint">يُحسب الإجمالي تلقائيًا من سعر البيع الأساسي عند تغيير الكمية، ويتوقف ذلك بعد تعديل السعر يدويًا.</p>
+        <button class="reset-price-button" id="resetSalePrice" type="button">إعادة السعر الأساسي</button>
+        <p class="calculated-total" id="calculatedTotal">الإجمالي: 0</p>
+        <div class="sale-payment-row">
+          <button class="sale-payment-button cash" id="cashSaleButton" type="button">بيع كاش</button>
+          <button class="sale-payment-button credit" id="creditSaleButton" type="button">بيع آجل</button>
+        </div>
+        <p class="form-error" id="saleError" role="alert"></p>
+        <div class="price-warning" id="priceWarning" hidden><strong id="priceWarningTitle">تنبيه السعر</strong><span id="priceWarningText"></span><div class="warning-actions"><button class="warning-back" id="backFromWarning" type="button">العودة لتعديل السعر</button><button class="warning-confirm" id="confirmUnusualPrice" type="button">متابعة البيع</button></div></div>
+      </form>
+    </section>
+  </div>
+
+  <section class="mobile-page history-page" id="historyPage" hidden>
+    <section class="mobile-page-content history-modal" aria-labelledby="historyTitle">
+      <p class="eyebrow history-context">عمليات هذه الصفحة فقط</p>
+      <h2 id="historyTitle">السجل</h2>
+      <div id="salesHistory" class="sales-history" aria-live="polite"></div>
+    </section>
+  </section>
+
+  <section class="mobile-page settings-page" id="settingsPage" hidden>
+    <section class="mobile-page-content settings-modal" aria-labelledby="settingsTitle">
+      <p class="eyebrow">الإعدادات</p>
+      <h2 id="settingsTitle">إعدادات الصفحة</h2>
+      <div class="setting-row">
+        <label for="showEndedProductsToggle">عرض المنتجات المنتهية ضمن قائمة المنتجات</label>
+        <input id="showEndedProductsToggle" type="checkbox">
+      </div>
+      <div class="setting-row">
+        <label for="allowDebtDateEditingToggle">السماح بتعديل التاريخ عند إضافة حركة مالية</label>
+        <input id="allowDebtDateEditingToggle" type="checkbox">
+      </div>
+      <div class="setting-row admin-only" id="mobileSalesAdminAccountStatusRow" hidden>
+        <label>حساب الأدمن المعتمد</label>
+        <strong id="mobileSalesAdminAccountStatusValue">غير محدد</strong>
+      </div>
+      <button class="primary-button danger-button" id="logoutButton" type="button">تسجيل الخروج</button>
+    </section>
+  </section>
+
+  <div class="modal-backdrop" id="debtsModal" hidden>
+    <section class="modal debts-modal" role="dialog" aria-modal="true" aria-labelledby="debtsTitle">
+      <button class="close-button" data-close-modal="debtsModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">الديون</p>
+      <h2 id="debtsTitle">إدارة ديون العملاء</h2>
+      <form id="customerForm" class="debt-form">
+        <label for="customerName">اسم العميل</label>
+        <input id="customerName" type="text" maxlength="80" required>
+        <label for="customerPhone">رقم الهاتف</label>
+        <input id="customerPhone" type="tel" maxlength="30">
+        <label for="customerNotes">ملاحظات</label>
+        <textarea id="customerNotes" rows="2" maxlength="250"></textarea>
+        <button class="primary-button" type="submit">إضافة عميل</button>
+      </form>
+      <div id="debtsList" class="debts-list" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="debtCustomerModal" hidden>
+    <section class="modal debts-modal" role="dialog" aria-modal="true" aria-labelledby="debtCustomerTitle">
+      <button class="close-button" data-close-modal="debtCustomerModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">عميل جديد</p>
+      <h2 id="debtCustomerTitle">إضافة عميل</h2>
+      <form id="debtCustomerForm" class="debt-form">
+        <label for="debtCustomerName">اسم العميل</label>
+        <input id="debtCustomerName" type="text" maxlength="80" required>
+        <label for="debtCustomerPhone">رقم الهاتف</label>
+        <input id="debtCustomerPhone" type="tel" maxlength="30">
+        <label for="debtCustomerNotes">الملاحظات</label>
+        <textarea id="debtCustomerNotes" rows="2" maxlength="250"></textarea>
+        <div class="debt-form-actions">
+          <button class="-button" id="cancelDebtCustomerButton" type="button">إلغاء</button>
+          <button class="primary-button" type="submit">حفظ العميل</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="creditCustomerModal" hidden>
+    <section class="modal debt-action-modal" role="dialog" aria-modal="true" aria-labelledby="creditCustomerTitle">
+      <button class="close-button" data-close-modal="creditCustomerModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">بيع آجل</p>
+      <h2 id="creditCustomerTitle">اختر العميل</h2>
+      <div id="creditCustomerList" class="credit-customer-list" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="customerDetailModal" hidden>
+    <section class="modal customer-detail-modal" role="dialog" aria-modal="true" aria-labelledby="customerDetailTitle">
+      <button class="close-button" data-close-modal="customerDetailModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">تفاصيل العميل</p>
+      <h2 id="customerDetailTitle">بيانات العميل</h2>
+      <div id="customerDetailContent" class="customer-detail-content"></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="debtActionModal" hidden>
+    <section class="modal debt-action-modal" role="dialog" aria-modal="true" aria-labelledby="debtActionTitle">
+      <button class="close-button" data-close-modal="debtActionModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">سجل مالي</p>
+      <h2 id="debtActionTitle">إضافة حركة</h2>
+      <form id="debtActionForm" class="debt-form">
+        <input id="debtCustomerId" type="hidden">
+        <input id="debtActionType" type="hidden">
+        <input id="debtOperationId" type="hidden">
+        <input id="debtOperationMode" type="hidden" value="create">
+        <div id="debtActionTypeRow">
+          <label for="debtActionTypeDisplay">نوع الحركة</label>
+          <select id="debtActionTypeDisplay">
+            <option value="debt">إضافة دين</option>
+            <option value="payment">سداد جزئي</option>
+            <option value="settle">سداد كامل</option>
+          </select>
+        </div>
+        <div id="debtCurrentBalanceRow" class="debt-current-balance" hidden></div>
+        <div id="debtConfirmRow" class="debt-confirm-row" hidden>
+          <p>هل أنت متأكد من سداد كامل حساب العميل؟</p>
+          <strong id="debtConfirmBalance">0</strong>
+        </div>
+        <div id="debtAmountRow">
+          <label for="debtAmount">المبلغ</label>
+          <input id="debtAmount" type="number" min="0.01" step="0.01" required>
+        </div>
+        <div class="debt-date-time-row">
+          <div>
+            <label for="debtActionDate">التاريخ</label>
+            <input id="debtActionDate" type="date" required>
+          </div>
+          <div hidden>
+            <label for="debtActionTime">الوقت</label>
+            <input id="debtActionTime" type="time" required>
+          </div>
+        </div>
+        <label for="debtActionNote">ملاحظة</label>
+        <textarea id="debtActionNote" rows="2" maxlength="200"></textarea>
+        <button id="debtActionSubmit" class="primary-button" type="submit">حفظ الحركة</button>
+        <button id="deleteDebtOperationButton" class="danger-button" type="button" hidden>حذف الحركة</button>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="returnSaleModal" hidden>
+    <section class="modal debt-action-modal" role="dialog" aria-modal="true" aria-labelledby="returnSaleTitle">
+      <button class="close-button" data-close-modal="returnSaleModal" type="button" aria-label="إغلاق">×</button>
+      <p class="eyebrow">استرجاع البيع الآجل</p>
+      <h2 id="returnSaleTitle">استرجاع البيع</h2>
+      <p class="return-sale-cash-hint" id="returnSaleItemValue">قيمة القطعة: 0 $</p>
+      <label for="returnSaleCashAmount">المبلغ المعاد من الخزينة</label>
+      <input id="returnSaleCashAmount" type="number" min="0" step="0.01" value="0" inputmode="decimal">
+      <p class="return-sale-cash-hint" id="returnSaleCashHint">المبلغ المقترح هو قيمة هذه العملية فقط ويمكن تعديله قبل تأكيد الاسترجاع.</p>
+      <p class="form-error" id="returnSaleError" role="alert"></p>
+      <button class="primary-button" id="confirmReturnSaleButton" type="button">تأكيد الاسترجاع</button>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <button class="install-button" id="installButton" type="button">تثبيت التطبيق</button>
+  <button class="back-to-top" id="backToTop" type="button" aria-label="العودة إلى أعلى المنتجات">↑</button>
+  <div class="custom-scrollbar" id="customScrollbar" role="scrollbar" aria-label="شريط تمرير الصفحة" aria-controls="appShell" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+    <div class="custom-scrollbar-thumb" id="customScrollbarThumb"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/manual-date-fields.js"></script>
+  <script src="js/mobile-sales-helpers.js"></script>
+  <script src="js/capitalSummary.js"></script>
+  <script src="js/dailySalesSummary.js"></script>
+  <script src="js/productSalesSummary.js"></script>
+  <script src="js/mobile-sales.js"></script>
+</body>
+</html>
