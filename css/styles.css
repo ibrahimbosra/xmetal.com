@@ -3335,6 +3335,31 @@ tr:hover td {
 }
 
 @media (max-width: 600px) {
+    .product-card .card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .product-card .product-title {
+        width: 100%;
+    }
+    .product-card .product-name {
+        word-break: normal;
+        overflow-wrap: break-word;
+        white-space: normal;
+    }
+    .product-card .product-meta-wrapper {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+    }
+    .product-card .product-meta {
+        min-width: 0;
+        width: 100%;
+        justify-content: space-between;
+        gap: 2px;
+        padding-inline: 6px;
+    }
     .card-header {
         gap: 6px;
     }
@@ -3454,12 +3479,16 @@ tr:hover td {
         flex-direction: column;
         gap: 6px;
     }
-    .action-buttons {
-        flex-direction: column;
+    .product-card .action-buttons {
+        flex-direction: row;
         gap: 6px;
     }
-    .action-buttons button {
-        width: 100%;
+    .product-card .action-buttons button {
+        width: auto;
+        min-width: 0;
+        padding-inline: 4px;
+        gap: 4px;
+        font-size: 0.72rem;
     }
     .form-actions {
         flex-direction: column;
